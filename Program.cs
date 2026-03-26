@@ -1,28 +1,80 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using EcommerceSqlSolutions.Models;
 using Microsoft.EntityFrameworkCore;
 
-using var db = new EcommerceContext();
+using (var context = new EcommerceContext())
+{
+    context.Database.EnsureCreated();
 
-Console.WriteLine($"Database path: {db.DbPath}.");
+    // check if there are agents in the database
+    // if not then execute code to add 15 agents
+    if (!context.Agents.Any())
+    {
+        for (int i = 1; i <= 15; i++)
+        {
+            context.Agents.Add(new Agent
+            {
+                Id = i,
+                Name = $"Agent{i}"
+            });
+        }
 
-// Create
-Console.WriteLine("Inserting a new agent");
-db.Add(new Agent { Name = "Ivan"});
-await db.SaveChangesAsync();
+        context.SaveChanges();
+    }
+    else
+    {
+        for (int i = 1; i <= 15; i++)
+        {
+            Agent agent = context.Agents.Find(i);
+            Console.WriteLine($"Id: {agent.Id}, Name: {agent.Name}");
+        }
+    }
 
-// Read
-Console.WriteLine("Querying for an agent");
-var agent = await db.Agents
-    .OrderBy(a => a.Id)
-    .FirstAsync();
+    if (!context.Goods.Any())
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            context.Goods.Add(new Good
+            {
+                Id = i,
+                Name = $"Good{i}"
+            });
+        }
 
-Console.WriteLine($"Id: {agent.Id}, Name: {agent.Name}");
+        context.SaveChanges();
+    } 
+    else
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            Good good = context.Goods.Find(i);
+            Console.WriteLine($"Id: {good.Id}, Name: {good.Name}");
+        }
+    }
 
-// Delete
-Console.WriteLine("Delete the agent");
-db.Remove(agent);
-await db.SaveChangesAsync();
+    if (!context.Colors.Any())
+    {
+        for (int i = 1; i <= 3; i++)
+        {
+            context.Colors.Add(new Color
+            {
+                Id = i,
+                Name = $"Color{i}"
+            });
+        }
 
+        context.SaveChanges();
+    }
+    else
+    {
+        for (int i = 1; i <= 3; i++)
+        {
+            Color color = context.Colors.Find(i);
+            Console.WriteLine($"Id: {color.Id}, Name: {color.Name}");
+        }
+    }
+}
 
