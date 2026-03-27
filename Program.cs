@@ -14,5 +14,7 @@ using (var context = new EcommerceContext())
     DatabaseSeeder.SeedGoods(context);
     DatabaseSeeder.SeedColors(context);
     DatabaseSeeder.SeedOrders(context);
+    DatabaseSeeder.SeedGoodProperties(context);
+
 }
 

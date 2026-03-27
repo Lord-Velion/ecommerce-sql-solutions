@@ -45,11 +45,31 @@ namespace EcommerceSqlSolutions
             }
         }
 
-        private static DateOnly GenerateDate()
+        private static DateTime GenerateDate(DateTime bDate, DateTime eDate)
         {
             Random rand = new Random();
-            int year = rand.Next(2020, 2024);
-            int month = rand.Next(1, 13);
+
+            int year = rand.Next(bDate.Year, eDate.Year + 1);
+
+            int month = 1;
+
+            if (year == bDate.Year)
+                month = rand.Next(bDate.Month, 13);
+            else if (year == eDate.Year)
+                month = rand.Next(1, eDate.Month + 1);
+            else
+                month = rand.Next(1, 13);
+
+            int firstDay = 1;
+            int lastDay = -1;
+
+            if (year == bDate.Year && month == bDate.Month)
+                firstDay = bDate.Day;
+            else if (year == eDate.Year && month == eDate.Month)
+                lastDay = eDate.Day;
+                
+
+
             int day = 1;
 
             // високосный год содержит 366 дней
@@ -58,21 +78,26 @@ namespace EcommerceSqlSolutions
             // 2021 - невисокосный год
             // 2022 - невисокосный год
             // 2023 - невисокосный год
-            
-            switch (month)
-            {
-                case 1 or 3 or 5 or 7 or 8 or 10 or 12:
-                    day = rand.Next(1, 32);
-                    break;
-                case 4 or 6 or 9 or 11:
-                    day = rand.Next(1, 31);
-                    break;
-                case 2:
-                    day = (year == 2020) ? (rand.Next(1, 30)) : (rand.Next(1, 29));
-                    break;                
-            }
 
-            return new DateOnly(year, month, day);
+            if (lastDay == -1)
+            {
+                switch (month)
+                {
+                    case 1 or 3 or 5 or 7 or 8 or 10 or 12:
+                        day = rand.Next(firstDay, 32);
+                        break;
+                    case 4 or 6 or 9 or 11:
+                        day = rand.Next(firstDay, 31);
+                        break;
+                    case 2:
+                        day = (year == 2020) ? (rand.Next(firstDay, 30)) : (rand.Next(firstDay, 29));
+                        break;
+                }
+            }
+            else         
+                day = rand.Next(firstDay, lastDay);
+
+            return new DateTime(year, month, day);
         }
 
         public static void SeedOrders(EcommerceContext context)
@@ -89,7 +114,7 @@ namespace EcommerceSqlSolutions
                         var order = new Order
                         {
                             AgentId = agentId,
-                            CreateDate = new DateTime(GenerateDate(), new TimeOnly(0))
+                            CreateDate = GenerateDate(new DateTime(2020, 01, 01), new DateTime(2023, 03, 31))
                         };
                         context.Orders.Add(order);
                                            
@@ -119,19 +144,48 @@ namespace EcommerceSqlSolutions
 
                 context.SaveChanges();
             }
-            else
+        }
+
+        public static void SeedGoodProperties(EcommerceContext context)
+        {
+            Random random = new Random();
+            if (!context.GoodProperties.Any())
             {
-                var query1 = from order in context.Orders
-                            select order;
-                foreach (var order in query1)
-                    Console.WriteLine($"Id: {order.Id}, AgentId: {order.AgentId}, CreateDate: {order.CreateDate}");
+                var goods = (from good in context.Goods
+                            where good.Id <= 4
+                            select good).ToArray();
 
-                var query2 = from orderDetail in context.OrderDetails
-                        select orderDetail;
+                var colors = (from color in context.Colors
+                             select color).ToArray();
 
-                foreach (var orderDetail in query2)
-                    Console.WriteLine($"Id: {orderDetail.Id}, OrderId: {orderDetail.OrderId}, GoodId: {orderDetail.GoodId}, GoodCount: {orderDetail.GoodCount}");
+                foreach(var good in goods)
+                {
+                    int propertiesCount = random.Next(2, 4);
 
+                    for (int i = 0; i < propertiesCount; i++)
+                    {
+                        DateTime bDate = GenerateDate(new DateTime(2020, 01, 01), new DateTime(2023, 03, 31));
+                        DateTime eDate = GenerateDate(bDate, new DateTime(2023, 03, 31));
+
+                        var goodProperty = new GoodProperty
+                        {
+                            Good = good,
+                            Color = colors[i],
+                            Bdate = bDate,
+                            Edate = eDate
+                        };
+
+                        context.GoodProperties.Add(goodProperty);
+                    }
+                }
+                context.SaveChanges();
+            } else
+            {
+                var query = from goodProperty in context.GoodProperties
+                            select goodProperty;
+
+                foreach (var gp in query)
+                    Console.WriteLine($"Id: {gp.Id}, GoodId: {gp.GoodId}, ColorId: {gp.ColorId}, Bdate: {gp.Bdate}, Edate: {gp.Edate}");
             }
         }
     }
