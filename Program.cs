@@ -16,5 +16,6 @@ using (var context = new EcommerceContext())
     DatabaseSeeder.SeedOrders(context);
     DatabaseSeeder.SeedGoodProperties(context);
 
+    DatabaseQuerier.a();
 }
 
