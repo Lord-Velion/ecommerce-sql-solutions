@@ -52,5 +52,20 @@ namespace EcommerceSqlSolutions
                 Console.WriteLine($"{name}");
             }
         }
+
+        public static void c(EcommerceContext context)
+        {
+            var query = from o in context.Orders
+                        join a in context.Agents on o.AgentId equals a.Id
+                        where o.CreateDate.Year == 2022
+                        group o by a.Name into g
+                        where g.Count() > 10
+                        select new { AgentName = g.Key };
+
+            foreach (var q in query)
+            {
+                Console.WriteLine($"{q.AgentName}");
+            }
+        }
     }
 }
