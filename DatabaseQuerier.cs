@@ -1,4 +1,5 @@
 ﻿using EcommerceSqlSolutions.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +66,56 @@ namespace EcommerceSqlSolutions
             foreach (var q in query)
             {
                 Console.WriteLine($"{q.AgentName}");
+            }
+        }
+
+        public class AgentGoodsAmount
+        {
+            public string AgentName { get; set; }
+            public int GoodsAmount { get; set; }
+        }
+
+        public static void d(EcommerceContext context)
+        {
+            var query = context.Database.SqlQueryRaw<AgentGoodsAmount>(@"
+            WITH LastOrders AS (
+                SELECT 
+                    Id, 
+                    AgentId, 
+                    CreateDate
+                FROM (
+                    SELECT 
+                        Id, 
+                        AgentId, 
+                        CreateDate,
+                        ROW_NUMBER() OVER (PARTITION BY AgentId ORDER BY CreateDate DESC) AS rn
+                    FROM Orders
+                ) ranked
+                WHERE rn = 1
+            )
+            SELECT
+                Agents.Name AS AgentName,
+                SUM(OrderDetails.GoodCount) AS GoodsAmount
+            FROM LastOrders
+                JOIN Agents ON LastOrders.AgentId = Agents.Id
+                LEFT JOIN OrderDetails ON LastOrders.Id = OrderDetails.OrderId
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM OrderDetails
+                JOIN Goods ON OrderDetails.GoodId = Goods.Id
+                JOIN GoodProperties ON OrderDetails.GoodId = GoodProperties.GoodId
+                JOIN Colors ON GoodProperties.ColorId = Colors.Id
+                WHERE OrderDetails.OrderId = LastOrders.ID
+                    AND Goods.Name = 'Good1'
+                    AND Colors.Name = 'Color2'
+            )
+            GROUP BY Agents.Name");
+
+            var result = query.ToList();
+
+            foreach (var item in result)
+            {
+                Console.WriteLine($"{item.AgentName}, {item.GoodsAmount}");
             }
         }
     }
