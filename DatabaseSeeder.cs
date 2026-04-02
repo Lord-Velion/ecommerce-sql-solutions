@@ -179,14 +179,14 @@ namespace EcommerceSqlSolutions
                     }
                 }
                 context.SaveChanges();
-            } else
+            } /*else
             {
                 var query = from goodProperty in context.GoodProperties
                             select goodProperty;
 
                 foreach (var gp in query)
                     Console.WriteLine($"Id: {gp.Id}, GoodId: {gp.GoodId}, ColorId: {gp.ColorId}, Bdate: {gp.Bdate}, Edate: {gp.Edate}");
-            }
+            }*/
         }
     }
 }
