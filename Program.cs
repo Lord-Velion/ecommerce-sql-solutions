@@ -19,6 +19,7 @@ using (var context = new EcommerceContext())
     //DatabaseQuerier.a(context);
     //DatabaseQuerier.b(context);
     //DatabaseQuerier.c(context);
-    DatabaseQuerier.d(context);
+    //DatabaseQuerier.d(context);
+    DatabaseQuerier.e(context);
 }
 

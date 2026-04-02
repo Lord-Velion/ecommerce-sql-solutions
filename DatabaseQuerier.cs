@@ -118,5 +118,53 @@ namespace EcommerceSqlSolutions
                 Console.WriteLine($"{item.AgentName}, {item.GoodsAmount}");
             }
         }
+
+        public static void e(EcommerceContext context)
+        {
+            var query = from o in context.Orders
+                        where o.CreateDate >= new DateTime(2023, 1, 1) && o.CreateDate <= new DateTime(2023, 3, 31)
+                        join od in context.OrderDetails on o.Id equals od.OrderId
+                        join g in context.Goods on od.GoodId equals g.Id
+                        select new
+                        {
+                            Month = o.CreateDate.Month,
+                            GoodName = g.Name,
+                            od.GoodCount
+                        };
+
+            var monthlyGroups = from x in query
+                                group x by new { x.GoodName, x.Month } into g
+                                select new
+                                {
+                                    g.Key.GoodName,
+                                    Month = g.Key.Month,
+                                    Amount = g.Sum(x => x.GoodCount)
+                                };
+
+            var monthlyGroupsList = monthlyGroups.ToList();
+
+            var result = monthlyGroupsList
+                .GroupBy(m => m.GoodName)
+                .SelectMany(g =>
+                {
+                    var cumulative = 0;
+                    return g.OrderBy(m => m.Month)
+                            .Select(m => new
+                            {
+                                m.GoodName,
+                                OrderMonth = m.Month,
+                                AmountPerMonth = m.Amount,
+                                CumulativeAmount = cumulative += m.Amount
+                            });
+                })
+                .OrderBy(r => r.GoodName)
+                .ThenBy(r => r.OrderMonth)
+                .ToList();
+
+            foreach (var r in result)
+            {
+                Console.WriteLine($"Name: {r.GoodName}, Month: {r.OrderMonth}, Amount: {r.AmountPerMonth}, CumAmount: {r.CumulativeAmount}");
+            }
+        }
     }
 }
